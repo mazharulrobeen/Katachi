@@ -36,7 +36,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-    """All tunable settings in one place. Model IDs are filled in during Phase 1."""
+    """All tunable settings in one place."""
 
     device: str = "auto"
     max_upload_mb: int = 10
@@ -47,9 +47,11 @@ class Settings:
     plantnet_api_key: str = field(default="", repr=False)
     species_min_confidence: float = 0.5
     restyle_backend: str = "diffusers"
-    sd_model: str = ""
-    controlnet_canny_model: str = ""
-    controlnet_depth_model: str = ""
+    sd_model: str = "stable-diffusion-v1-5/stable-diffusion-v1-5"
+    controlnet_canny_model: str = "lllyasviel/control_v11p_sd15_canny"
+    controlnet_depth_model: str = "lllyasviel/control_v11f1p_sd15_depth"
+    depth_estimator_model: str = "Intel/dpt-hybrid-midas"
+    max_side: int = 768  # generation resolution (long side); SD 1.5 works best at 512-768
     num_inference_steps: int = 30
     hosted_api_url: str = ""
     hosted_api_key: str = field(default="", repr=False)
@@ -78,6 +80,10 @@ class Settings:
             controlnet_depth_model=_env_str(
                 "KATACHI_CONTROLNET_DEPTH_MODEL", cls.controlnet_depth_model
             ),
+            depth_estimator_model=_env_str(
+                "KATACHI_DEPTH_ESTIMATOR_MODEL", cls.depth_estimator_model
+            ),
+            max_side=_env_int("KATACHI_MAX_SIDE", cls.max_side),
             num_inference_steps=_env_int("KATACHI_NUM_INFERENCE_STEPS", cls.num_inference_steps),
             hosted_api_url=_env_str("KATACHI_HOSTED_API_URL", ""),
             hosted_api_key=_env_str("KATACHI_HOSTED_API_KEY", ""),
