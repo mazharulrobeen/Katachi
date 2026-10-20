@@ -39,5 +39,5 @@ soon in `CONTRIBUTING.md` and `docs/`.
 
 ## License
 
-Apache-2.0 (pending owner confirmation). See [LICENSE](LICENSE). Third-party models and their
+Apache-2.0. See [LICENSE](LICENSE). Third-party models and their
 licenses are listed in [MODEL_LICENSES.md](MODEL_LICENSES.md).
