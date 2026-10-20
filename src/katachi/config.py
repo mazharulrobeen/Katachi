@@ -27,18 +27,10 @@ def _env_float(name: str, default: float) -> float:
     return float(value) if value else default
 
 
-def _env_bool(name: str, default: bool) -> bool:
-    value = os.getenv(name, "").strip().lower()
-    if not value:
-        return default
-    return value in {"1", "true", "yes", "on"}
-
-
 @dataclass(frozen=True)
 class Settings:
     """All tunable settings in one place."""
 
-    device: str = "auto"
     max_upload_mb: int = 10
     min_resolution: int = 512
     segmenter: str = "rembg"
@@ -46,23 +38,12 @@ class Settings:
     species_provider: str = "manual"
     plantnet_api_key: str = field(default="", repr=False)
     species_min_confidence: float = 0.5
-    restyle_backend: str = "diffusers"
-    sd_model: str = "stable-diffusion-v1-5/stable-diffusion-v1-5"
-    controlnet_canny_model: str = "lllyasviel/control_v11p_sd15_canny"
-    controlnet_depth_model: str = "lllyasviel/control_v11f1p_sd15_depth"
-    depth_estimator_model: str = "Intel/dpt-hybrid-midas"
-    max_side: int = 768  # generation resolution (long side); SD 1.5 works best at 512-768
-    num_inference_steps: int = 30
-    hosted_api_url: str = ""
-    hosted_api_key: str = field(default="", repr=False)
-    watermark_default: bool = True
 
     @classmethod
     def from_env(cls) -> Settings:
         """Build settings from the environment, loading `.env` if present."""
         load_dotenv()
         return cls(
-            device=_env_str("KATACHI_DEVICE", cls.device),
             max_upload_mb=_env_int("KATACHI_MAX_UPLOAD_MB", cls.max_upload_mb),
             min_resolution=_env_int("KATACHI_MIN_RESOLUTION", cls.min_resolution),
             segmenter=_env_str("KATACHI_SEGMENTER", cls.segmenter),
@@ -72,20 +53,4 @@ class Settings:
             species_min_confidence=_env_float(
                 "KATACHI_SPECIES_MIN_CONFIDENCE", cls.species_min_confidence
             ),
-            restyle_backend=_env_str("KATACHI_RESTYLE_BACKEND", cls.restyle_backend),
-            sd_model=_env_str("KATACHI_SD_MODEL", cls.sd_model),
-            controlnet_canny_model=_env_str(
-                "KATACHI_CONTROLNET_CANNY_MODEL", cls.controlnet_canny_model
-            ),
-            controlnet_depth_model=_env_str(
-                "KATACHI_CONTROLNET_DEPTH_MODEL", cls.controlnet_depth_model
-            ),
-            depth_estimator_model=_env_str(
-                "KATACHI_DEPTH_ESTIMATOR_MODEL", cls.depth_estimator_model
-            ),
-            max_side=_env_int("KATACHI_MAX_SIDE", cls.max_side),
-            num_inference_steps=_env_int("KATACHI_NUM_INFERENCE_STEPS", cls.num_inference_steps),
-            hosted_api_url=_env_str("KATACHI_HOSTED_API_URL", ""),
-            hosted_api_key=_env_str("KATACHI_HOSTED_API_KEY", ""),
-            watermark_default=_env_bool("KATACHI_WATERMARK_DEFAULT", cls.watermark_default),
         )

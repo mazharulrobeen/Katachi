@@ -16,10 +16,10 @@ def test_settings_defaults(monkeypatch) -> None:
 
 def test_settings_env_override(monkeypatch) -> None:
     monkeypatch.setenv("KATACHI_MAX_UPLOAD_MB", "5")
-    monkeypatch.setenv("KATACHI_WATERMARK_DEFAULT", "false")
+    monkeypatch.setenv("KATACHI_SPECIES_MIN_CONFIDENCE", "0.7")
     settings = Settings.from_env()
     assert settings.max_upload_mb == 5
-    assert settings.watermark_default is False
+    assert settings.species_min_confidence == 0.7
 
 
 def test_species_dir_exists() -> None:

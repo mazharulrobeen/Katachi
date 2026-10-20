@@ -4,22 +4,24 @@
 
 ## 1. Project overview
 
-**Katachi** is an open source tool where a user uploads a photo of their bonsai tree, sees details about the tree (species, scientific name, bonsai care practices, rough structure), and then gets a realistic preview of the same tree restyled into a chosen bonsai style (e.g., windswept, slanting).
+**Katachi** is an open source tool where a user uploads a photo of their bonsai tree and sees details about the tree: species, scientific name, bonsai care practices, suitable styles, and rough structure.
 
-- **Tagline:** *See the shape your tree could become.*
+> **Scope change (2026-10-20):** the owner dropped the AI restyle feature (Stable Diffusion img2img + ControlNet) to avoid multi-GB local model downloads. Do **not** reintroduce image generation without asking the owner. The removed code is in git history (commit `5b824ad`).
+
+- **Tagline:** *TODO: owner to choose a new tagline (the old one, "See the shape your tree could become", described the dropped restyle preview).*
 - **Owner / GitHub org:** Engramium
 - **Repo name:** `katachi`
 - **Name meaning:** 形 (katachi) is Japanese for "shape" or "form".
 - **Current target:** **v0.1, the first public release** (scope below).
 
 ### Why this project exists
-Its main goals are a strong visual demo (before/after of the user's own tree), real usefulness to bonsai hobbyists, and an easy path for open source contributors (species data, style templates). Optimize for: **a polished, narrow v0.1 that works reliably** over a broad, half-working one.
+Its main goals are real usefulness to bonsai hobbyists and an easy path for open source contributors (species data). Optimize for: **a polished, narrow v0.1 that works reliably** over a broad, half-working one.
 
 ---
 
 ## 2. v0.1 goal
 
-A stranger opens the hosted demo, picks a sample bonsai photo (or uploads their own), sees the **Tree Profile**, selects a style, and gets a convincing restyled result with a before/after slider, all in under about 30 seconds.
+A stranger opens the hosted demo, picks a sample bonsai photo (or uploads their own), and sees an accurate, sourced **Tree Profile** in a few seconds.
 
 ---
 
@@ -28,10 +30,9 @@ A stranger opens the hosted demo, picks a sample bonsai photo (or uploads their 
 | Layer | Choice | Notes |
 |---|---|---|
 | Language | Python 3.11+ | |
-| UI | **Gradio** | Deploys directly to Hugging Face Spaces; has an image comparison slider |
+| UI | **Gradio** | Deploys directly to Hugging Face Spaces |
 | Background removal | `rembg` (U2-Net) as default; SAM as optional upgrade | Keep behind an interface so models are swappable |
 | Species identification | Pluggable provider interface | Default: Pl@ntNet API (free tier) or a vision-language model API; must work with a manual override |
-| Restyle generation | Stable Diffusion img2img + ControlNet (Hugging Face `diffusers`), with an optional hosted image-editing API fallback | Must preserve pot, background, and overall identity of the tree |
 | Species data | YAML files in `species/` | Validated with a schema (pydantic) |
 | Tests | `pytest` | |
 | Packaging | `pyproject.toml`, `Dockerfile`, `docker-compose.yml` | One-command local run |
@@ -66,8 +67,7 @@ katachi/
 │   │   ├── database.py        # loads and validates species/*.yaml
 │   │   └── schema.py          # pydantic models for species files
 │   ├── structure.py           # rough branch/foliage estimate (range, not exact)
-│   ├── styles.py              # style definitions, prompts, suitability logic
-│   ├── restyle.py             # img2img + ControlNet generation (swappable backends)
+│   ├── styles.py              # style catalog (ids, names, descriptions), suitability logic
 │   └── ui/
 │       └── components.py      # Gradio UI pieces, profile card rendering
 ├── species/                   # one YAML file per species (community-contributed)
@@ -78,8 +78,7 @@ katachi/
 │   └── outputs/
 ├── docs/
 │   ├── architecture.md
-│   ├── adding-a-species.md
-│   └── adding-a-style.md
+│   └── adding-a-species.md
 └── tests/
     ├── test_validation.py
     ├── test_species_database.py
@@ -113,26 +112,11 @@ Displayed right after upload and segmentation, before styling.
 - **Rough structure estimate:** approximate number of visible branches or foliage pads as a **range** (e.g., "about 8-12 visible branches"), clearly labeled as an estimate.
 - If the species is not in the database or confidence is low, show a clear "Unknown or low confidence, please choose a species" state. Never invent care data.
 
-### 5.4 Style preview
-Three styles in v0.1:
-1. **Informal upright (Moyogi)**
-2. **Slanting (Shakan)**
-3. **Windswept (Fukinagashi)**
+### 5.4 Styles in the profile
+Three styles in v0.1: **Informal upright (Moyogi)**, **Slanting (Shakan)**, **Windswept (Fukinagashi)**.
 
-- One-click selection with a short description of each.
-- Styles that don't suit the detected species are labeled **"not recommended"** (still selectable, not hidden).
-
-### 5.5 AI restyle
-- Image-to-image generation that keeps the same pot, background, and overall look of the tree.
-- Use fixed, tested prompts and negative prompts per style, stored in `styles.py` (no prompt writing by the user).
-- **Regenerate** button that produces a different variation (new seed).
-- Must run on GPU if available, with a documented CPU fallback (slow) and/or a hosted-API fallback.
-
-### 5.6 Result view
-- **Before/after slider.**
-- Download the result as PNG.
-- Optional small "Generated by Katachi" watermark (toggle, on by default).
-- Visible note: *"This is a preview of a possible future shape, not a guarantee. Real styling takes years."*
+- The Tree Profile lists all three with a short description. Styles that don't suit the species are labeled **"not recommended"** (shown, not hidden).
+- No image generation (dropped; see §1).
 
 ### 5.7 Running it
 - One-command local setup: `docker compose up` (and a documented non-Docker path using `pip install -e .` then `python app.py`).
@@ -140,7 +124,7 @@ Three styles in v0.1:
 - Deployable as a Hugging Face Space.
 
 ### 5.8 Repo essentials
-- `README.md`: before/after GIF at top, demo link, features, quick start, hardware notes, roadmap, how to contribute.
+- `README.md`: screenshot at top, demo link, features, quick start, roadmap, how to contribute.
 - `LICENSE`: **Apache-2.0** unless the owner says otherwise (confirm with the owner before the first release).
 - `MODEL_LICENSES.md`: every model and weight with its license and whether it's bundled or downloaded at runtime.
 - `CONTRIBUTING.md` and `docs/adding-a-species.md`.
@@ -191,23 +175,7 @@ Rules:
 
 ## 7. Style definitions
 
-Each style in `styles.py` is a data object:
-
-```python
-Style(
-    id="windswept",
-    display_name="Windswept (Fukinagashi)",
-    description="Trunk and branches sweep to one side, as if shaped by constant wind.",
-    prompt="...",              # tuned positive prompt
-    negative_prompt="...",     # tuned negative prompt
-    controlnet_conditioning="canny|depth",   # whichever tests best
-    strength=0.5,              # img2img strength; tune per style
-)
-```
-
-Requirements:
-- Prompts must say to **keep the same pot, background, lighting, and tree identity**.
-- Tune `strength` and ControlNet conditioning per style by testing on the sample images. Record the tested values and a few result examples in `docs/adding-a-style.md`.
+Each style in `styles.py` is a small data object (`id`, `display_name`, `description`). Species files reference styles by `id` in `suitable_styles` / `not_recommended_styles`.
 
 ---
 
@@ -219,12 +187,11 @@ Complete each phase, run tests, and commit before starting the next.
 - [ ] Initialize repo structure, `pyproject.toml`, `ruff`, `pytest`, `.gitignore`, `.env.example`.
 - [ ] Add placeholder `README.md`, `LICENSE` (Apache-2.0, pending owner confirmation), `MODEL_LICENSES.md`.
 
-### Phase 1: Core pipeline, one style
-- [ ] `validation.py` with tests.
-- [ ] `segmentation.py` with `Segmenter` interface and `rembg` backend.
-- [ ] `restyle.py` with img2img + ControlNet and the **windswept** style only.
-- [ ] Simple script (`python -m katachi.pipeline --image x.jpg --style windswept`) that outputs a before/after.
-- [ ] **Checkpoint:** show the owner sample results before continuing.
+### Phase 1: Core pipeline (done)
+- [x] `validation.py` with tests.
+- [x] `segmentation.py` with `Segmenter` interface and `rembg` backend.
+- [x] Simple script (`python -m katachi.pipeline --image x.jpg`) that saves the isolated cutout.
+- Restyle was built and then dropped by the owner (see §1).
 
 ### Phase 2: Species profile
 - [ ] Species schema, loader, and 5 species files.
@@ -232,19 +199,17 @@ Complete each phase, run tests, and commit before starting the next.
 - [ ] `structure.py` rough branch/foliage range estimate (heuristic; always output a range with an "estimate" label).
 - [ ] Tests for schema validation and database loading.
 
-### Phase 3: Remaining styles and tuning
-- [ ] Add Moyogi and Shakan.
-- [ ] Tune prompts, strength, and ControlNet settings on the sample images.
-- [ ] Add suitability logic ("not recommended" labeling).
+### Phase 3: Style suitability
+- [ ] Suitability logic ("not recommended" labeling) driven by species files.
 
 ### Phase 4: UI
-- [ ] Gradio app: upload → isolated preview → Tree Profile card (with species override) → style picker → result with before/after slider, regenerate, download.
+- [ ] Gradio app: upload or pick a sample → isolated preview → Tree Profile card (with species override and style suitability).
 - [ ] Loading states and clear error messages.
 
 ### Phase 5: Packaging and docs
 - [ ] `Dockerfile` and `docker-compose.yml`.
-- [ ] README with quick start and hardware notes.
-- [ ] `CONTRIBUTING.md`, `docs/adding-a-species.md`, `docs/adding-a-style.md`, `docs/architecture.md`.
+- [ ] README with quick start.
+- [ ] `CONTRIBUTING.md`, `docs/adding-a-species.md`, `docs/architecture.md`.
 - [ ] Hugging Face Space configuration.
 - [ ] Issue templates and starter issues list (as a markdown file the owner can post).
 
@@ -252,17 +217,17 @@ Complete each phase, run tests, and commit before starting the next.
 
 ## 9. Definition of done (v0.1)
 
-- [ ] A stranger can open the demo, pick a sample tree, see its species profile, and get a restyle in under ~30 seconds (on the hosted hardware).
+- [ ] A stranger can open the demo, pick a sample tree, and see its species profile within a few seconds.
 - [ ] Species identification is correct for most common species on the test photos, and the manual override always works.
-- [ ] At least ~80% of generated results on the test set still look like the same tree (same pot, same background, recognizable trunk).
 - [ ] Someone can run it locally by following the README alone.
 - [ ] All tests pass; `ruff` is clean.
-- [ ] `MODEL_LICENSES.md` is complete and no non-redistributable weights are committed to the repo.
+- [ ] `MODEL_LICENSES.md` is complete and no model weights are committed to the repo.
 
 ---
 
 ## 10. Out of scope for v0.1 (do NOT build)
 
+- AI restyle / image generation of any kind (dropped by the owner)
 - Exact branch counts, health or disease diagnosis, precise measurements
 - Mobile app (Flutter / React Native)
 - Achievability scoring and pruning/wiring guides
@@ -281,13 +246,13 @@ If something seems necessary that is not in scope, **ask the owner first** inste
 3. **Do not commit model weights, API keys, or user photos.** Download weights at runtime or document how to get them. Keep secrets in `.env` (never committed).
 4. **Check licenses.** Before adding any model, library, dataset, or sample photo, record its license in `MODEL_LICENSES.md`. Only use sample photos that are public domain or permissively licensed (e.g., CC0, CC BY), with attribution recorded.
 5. **Never fabricate horticultural facts.** Care data must come from sourced species files. If unsure, leave a field out and flag it with a TODO instead of guessing.
-6. **Be honest in the UI.** Label estimates as estimates, show confidence scores, and always include the "preview, not a guarantee" note.
-7. **Keep components swappable.** Segmentation, species identification, and restyle backends all sit behind small interfaces so contributors can add alternatives.
-8. **Write tests** for validation, species loading, style logic, and the pipeline (using small fixtures and mocked model calls so tests run without a GPU).
+6. **Be honest in the UI.** Label estimates as estimates and show confidence scores.
+7. **Keep components swappable.** Segmentation and species identification sit behind small interfaces so contributors can add alternatives.
+8. **Write tests** for validation, species loading, style logic, and the pipeline (using small fixtures and mocked model calls so tests run without downloading models).
 9. **Keep code clean and documented.** Type hints, short docstrings, `ruff`-clean, small focused modules.
 10. **Commit often** with clear messages (e.g., `feat: add rembg segmentation backend`). One logical change per commit.
-11. **Performance:** prefer lazy model loading and caching so the app starts fast and re-runs are quick. Document expected speed on CPU vs GPU.
-12. **Stop and report** if results look poor (the tree changes identity, artifacts, wrong pot). Show the failing examples and propose fixes before moving on.
+11. **Performance:** prefer lazy model loading and caching so the app starts fast and re-runs are quick.
+12. **Stop and report** if results look poor (bad cutouts, wrong species). Show the failing examples and propose fixes before moving on.
 
 ---
 
@@ -299,10 +264,10 @@ Paste this into Claude Code to begin:
 
 ---
 
-## 13. Open questions for the owner
+## 13. Owner decisions and open questions
 
-- License: confirm Apache-2.0 (or choose MIT / AGPL-3.0).
-- Species identification provider: Pl@ntNet API key, or a vision-language model API?
-- Hosting for the demo: Hugging Face Space (free CPU vs paid GPU) or other?
-- Do you have a GPU locally for development?
-- Source of sample bonsai photos (your own, or license-cleared ones)?
+Decided: Apache-2.0 license; Pl@ntNet as the default species ID provider; sample photos from Wikimedia Commons (CC0 / public domain / CC BY only); AI restyle dropped.
+
+Open:
+- New tagline.
+- Hosting for the demo: Hugging Face Space (free CPU should suffice now) or other?

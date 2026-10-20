@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "katachi"
 version = "0.1.0.dev0"
-description = "See the shape your tree could become: bonsai species profiles and AI style previews."
+description = "Bonsai tree profiles from a photo: species, care practices, and suitable styles."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
 authors = [{ name = "Engramium" }]
-keywords = ["bonsai", "stable-diffusion", "controlnet", "gradio", "plants"]
+keywords = ["bonsai", "plants", "species-identification", "gradio"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
@@ -30,23 +30,15 @@ dependencies = [
 [project.optional-dependencies]
 # Background removal (rembg / U2-Net). Weights are downloaded at runtime.
 segment = ["rembg[cpu]>=2.0.50"]
-# Restyle generation (Stable Diffusion img2img + ControlNet). Weights downloaded at runtime.
-restyle = [
-    "torch>=2.2",
-    "diffusers>=0.27",
-    "transformers>=4.40",
-    "accelerate>=0.28",
-    "opencv-python-headless>=4.9",
-]
 # Gradio web UI.
 ui = ["gradio>=4.36"]
 # Everything needed to run the full app.
-all = ["katachi[segment,restyle,ui]"]
+all = ["katachi[segment,ui]"]
 dev = ["pytest>=8.0", "ruff>=0.5"]
 
 [project.urls]
-Homepage = "https://github.com/Engramium/katachi"
-Issues = "https://github.com/Engramium/katachi/issues"
+Homepage = "https://github.com/mazharulrobeen/Katachi"
+Issues = "https://github.com/mazharulrobeen/Katachi/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/katachi"]
