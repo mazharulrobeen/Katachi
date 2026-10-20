@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets
+.env
+
+# Model weights and caches (never commit; downloaded at runtime)
+models/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.bin
+.cache/
+.u2net/
+
+# Generated outputs and user uploads
+examples/outputs/*
+!examples/outputs/.gitkeep
+uploads/
+gradio_cached_examples/
+.gradio/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,27 @@
+# Template for a species file. Copy to species/<id>.yaml and fill in.
+# Every value must come from a source listed under `sources`. Never guess:
+# if you are unsure about a field, leave it out and add a TODO comment.
+id: genus_species                   # lowercase, underscores, unique; matches the file name
+common_names: ["Common name"]
+scientific_name: "Genus species"
+family: "Familyaceae"
+origin: "Native range"
+difficulty: beginner                # beginner | intermediate | advanced
+type: conifer                       # conifer | deciduous | broadleaf_evergreen | tropical
+light: ""
+watering: ""
+pruning:
+  season: ""
+  notes: ""
+wiring:
+  season: ""
+  notes: ""
+repotting:
+  interval: ""
+  season: ""
+suitable_styles: []                 # informal_upright | slanting | windswept
+not_recommended_styles: []
+common_problems: []
+sources:
+  - "At least one reliable source (book, nursery, or botanical garden page), with a URL if available."
+contributors: ["@github_handle"]
